@@ -1,0 +1,55 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-wp-app
+  labels:
+    name: deploy-wp-app
+    env: dev
+spec:
+  replicas: 1
+  selector: 
+    matchLabels:
+      name: pod-wp-app
+  template:
+    metadata:
+      name: pod-wp-app
+      labels:
+        name: pod-wp-app
+        env: dev
+    spec:
+      volumes:
+        - name: vol-wp-app
+          persistentVolumeClaim:
+            claimName: pvc-wp-app
+      containers:
+        - name: container-wp-app
+          image: wordpress:5.9.2-php7.4-apache
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: vol-wp-app
+              mountPath: /var/www/html
+          ports:
+            - name: int-port-wp-app
+              containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: cm-wp
+            - secretRef:
+                name: secret-wp
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-wp-app
+  labels:
+    name: svc-wp-app
+    env: dev
+spec:
+  type: ClusterIP
+  selector:
+    name: pod-wp-app
+  ports:
+    - name: ext-port-wp-app
+      port: 8080
+      targetPort: int-port-wp-app

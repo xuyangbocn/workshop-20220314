@@ -1,0 +1,19 @@
+apiVersion: mysql.presslabs.org/v1alpha1
+kind: MysqlCluster
+metadata:
+  name: cluster-db
+  labels:
+    name: cluster-db
+spec:
+  replicas: 2
+  secretName: secret-db
+  mysqlVersion: "8.0"
+  volumeSpec:
+    persistentVolumeClaim:
+      storageClassName: do-block-storage
+      resources:
+        requests:
+          storage: 1Gi
+      accessModes:
+        - ReadWriteOnce
+    

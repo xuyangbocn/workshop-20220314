@@ -1,0 +1,57 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploy-bggapp-v2
+  labels:
+    name: deploy-bggapp-v2
+    env: dev
+spec:
+  replicas: 3
+  selector: 
+    matchLabels:
+      name: pod-bggapp-v2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0 
+  template:
+    metadata:
+      name: pod-bggapp-v2
+      labels:
+        name: pod-bggapp-v2
+        env: dev
+    spec:
+      containers:
+        - name: container-bggapp-v2
+          image: stackupiss/bgg-backend:v2
+          imagePullPolicy: IfNotPresent
+          args:
+            - --prefix
+            - /v2
+          ports:
+            - name: port-bggapp-v2
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: cm-bgg
+            - secretRef:
+                name: secret-bgg
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-bggapp-v2
+  labels:
+    name: svc-bggapp-v2
+    env: dev
+spec:
+  type: ClusterIP
+  selector:
+    name: pod-bggapp-v2
+  ports:
+    - name: ext-port-bggapp
+      port: 8080
+      targetPort: port-bggapp-v2
